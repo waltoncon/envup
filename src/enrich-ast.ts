@@ -1,6 +1,9 @@
 import type { EnvAst, AssignmentNode } from "./types";
 import aws from "./functions/aws";
 import { needsQuotes } from "./utils";
+import { hash } from "./functions/hash";
+import random from "./functions/random";
+import uuid from "./functions/uuid";
 
 export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
   return await Promise.all(
@@ -16,7 +19,7 @@ export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
       if (!node.value.startsWith("envup://")) return node;
 
       const url = new URL(node.value);
-      const funcName = url.host;
+      const funcName = url.hostname;
 
       if (!funcName) {
         console.error(`Invalid envup URL (missing function): ${node.raw}`);
@@ -29,12 +32,12 @@ export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
       }
 
       const func = functions[funcName as FuncName];
-      const newValue = await func(url);
+      const newValue = (await func(url)) || "";
 
       return {
         ...node,
         value: newValue,
-        quote: needsQuotes(newValue || "") ? node.quote || '"' : undefined,
+        quote: needsQuotes(newValue) ? node.quote || '"' : undefined,
       } satisfies AssignmentNode;
     })
   );
@@ -44,18 +47,9 @@ type Func = (url: URL) => Promise<string | undefined> | string | undefined;
 type FuncName = keyof typeof functions;
 
 const functions = {
-  random: (url: URL) => Math.random().toString(36).substring(2, 15),
-  uuid: () => crypto.randomUUID(),
+  random,
+  uuid,
   timestamp: () => Date.now().toString(),
-  bcrypt: (url: URL) => {
-    const value = url.pathname.slice(1); // remove leading /
-    const salt = url.searchParams.get("salt") || "10";
-    // without bcrypt library
-    const hash = require("crypto")
-      .createHash("sha256")
-      .update(salt + value)
-      .digest("hex");
-    return hash;
-  },
+  hash,
   aws,
 } as const satisfies Record<string, Func>;
