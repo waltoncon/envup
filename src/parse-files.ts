@@ -1,0 +1,141 @@
+import { globby } from "globby";
+import { readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
+const files = await globby("**", {
+  cwd: resolve("./test-env-files"),
+  absolute: true,
+  dot: true,
+});
+
+console.log("Found files:", files);
+
+const LINE =
+  // /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/gm;
+  // /(?:^|^)\s*(?:export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#\s*(?<comment>.*))?(?:$|$)/gm;
+  // /(?:^|^)(?:^\s*#\s*(?<full_comment>.*)|\s*(?:export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
+  /(?:^|^)(?:^\s*#(?:[^\r\n]*?)(?<full_comment>.*)|\s*(?:export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
+
+for (const file of files) {
+  const content = await readFile(file, "utf-8");
+
+  console.log(`\n--- ${file} ---`);
+
+  const parsed = parse(content);
+
+  const output = parsed
+    .map((entry) => {
+      if (entry.type === "comment") {
+        return `# ${entry.text}`;
+      }
+
+      const q = entry.quote || "";
+
+      let line = `${entry.key}=${q}${entry.value}${q}`;
+
+      if (entry.inline_comment) {
+        line += ` # ${entry.inline_comment}`;
+      }
+
+      return line;
+    })
+    .join("\n");
+
+  console.log(output);
+
+  const outputFile = `${file}.out`;
+
+  await writeFile(outputFile, output, "utf-8");
+}
+
+function parse(src: string) {
+  // const obj = {};
+  const result: Array<
+    | { type: "comment"; text: string; pos: { line: number; column: number } }
+    | {
+        type: "var";
+        key: string;
+        value: string;
+        inline_comment?: string;
+        quote?: string;
+        pos: { line: number; column: number };
+      }
+  > = [];
+
+  // Convert buffer to string
+  let lines = src.toString();
+
+  // Convert line breaks to same format
+  lines = lines.replace(/\r\n?/gm, "\n");
+
+  let match;
+  while ((match = LINE.exec(lines)) != null) {
+    // console.log(match);
+
+    if (match.groups?.full_comment !== undefined) {
+      result.push({
+        type: "comment",
+        text: match.groups.full_comment.trim(),
+        pos: getLineAndColumnFromIndex(lines, match.index),
+      });
+      continue;
+    }
+
+    if (match.groups?.key === undefined) {
+      // This is probably a blank line
+      continue;
+    }
+
+    const key = match.groups.key;
+
+    // Default undefined or null to empty string
+    let value = match.groups.val || "";
+
+    // Remove whitespace
+    value = value.trim();
+
+    // Check if double quoted
+    const maybeQuote = value[0];
+
+    // Remove surrounding quotes
+    value = value.replace(/^(['"`])([\s\S]*)\1$/gm, "$2");
+
+    const hasQuote = maybeQuote === '"';
+
+    // Expand newlines if double quoted
+    if (hasQuote) {
+      value = value.replace(/\\n/g, "\n");
+      value = value.replace(/\\r/g, "\r");
+    }
+
+    // Add to object
+    // obj[key] = value;
+    result.push({
+      type: "var",
+      key,
+      value,
+      quote: hasQuote ? '"' : undefined,
+      pos: getLineAndColumnFromIndex(lines, match.index),
+    });
+  }
+
+  return result;
+}
+
+function getLineAndColumnFromIndex(text: string, index: number) {
+  if (index < 0 || index > text.length) {
+    throw new RangeError("Index is out of range");
+  }
+
+  // Get text before the index
+  const before = text.slice(0, index);
+
+  // Count lines
+  const lines = before.split("\n");
+
+  const line = lines.length;
+  const length = lines[line - 1]?.length || 0;
+  const column = length + 1;
+
+  return { line, column };
+}
