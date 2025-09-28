@@ -2,6 +2,18 @@ import { globby } from "globby";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+type EnvArrayFormat = Array<
+  | { type: "comment"; text: string; pos: { line: number; column: number } }
+  | {
+      type: "var";
+      key: string;
+      value: string;
+      inline_comment?: string;
+      quote?: string;
+      pos: { line: number; column: number };
+    }
+>;
+
 const files = await globby(["**", "!*.out"], {
   cwd: resolve("./test-env-files"),
   absolute: true,
@@ -11,9 +23,6 @@ const files = await globby(["**", "!*.out"], {
 console.log("Found files:", files);
 
 const LINE =
-  // /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/gm;
-  // /(?:^|^)\s*(?:export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#\s*(?<comment>.*))?(?:$|$)/gm;
-  // /(?:^|^)(?:^\s*#\s*(?<full_comment>.*)|\s*(?:export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
   /(?:^|^)(?:^\s*#(?:[^\r\n]*?)(?<full_comment>.*)|\s*(?:export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
 
 for (const file of files) {
@@ -23,7 +32,17 @@ for (const file of files) {
 
   const parsed = parse(content);
 
-  const output = parsed
+  const output = parsedToString(parsed);
+
+  console.log(output);
+
+  const outputFile = `${file}.out`;
+
+  await writeFile(outputFile, output, "utf-8");
+}
+
+export function parsedToString(arr: EnvArrayFormat) {
+  return arr
     .map((entry) => {
       if (entry.type === "comment") {
         return `# ${entry.text}`;
@@ -40,27 +59,11 @@ for (const file of files) {
       return line;
     })
     .join("\n");
-
-  console.log(output);
-
-  const outputFile = `${file}.out`;
-
-  await writeFile(outputFile, output, "utf-8");
 }
 
-function parse(src: string) {
+export function parse(src: string) {
   // const obj = {};
-  const result: Array<
-    | { type: "comment"; text: string; pos: { line: number; column: number } }
-    | {
-        type: "var";
-        key: string;
-        value: string;
-        inline_comment?: string;
-        quote?: string;
-        pos: { line: number; column: number };
-      }
-  > = [];
+  const result: EnvArrayFormat = [];
 
   // Convert buffer to string
   let lines = src.toString();
