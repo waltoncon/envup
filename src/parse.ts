@@ -1,7 +1,3 @@
-import { globby } from "globby";
-import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
-
 type EnvArrayFormat = Array<
   | { type: "comment"; text: string; pos: { line: number; column: number } }
   | {
@@ -15,32 +11,8 @@ type EnvArrayFormat = Array<
     }
 >;
 
-const files = await globby(["**", "!*.out"], {
-  cwd: resolve("./test-env-files"),
-  absolute: true,
-  dot: true,
-});
-
-console.log("Found files:", files);
-
 const LINE =
   /(?:^|^)(?:^\s*#(?:[^\r\n]*?)(?<full_comment>.*)|\s*(?<export>export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
-
-for (const file of files) {
-  const content = await readFile(file, "utf-8");
-
-  console.log(`\n--- ${file} ---`);
-
-  const parsed = parse(content);
-
-  const output = parsedToString(parsed);
-
-  console.log(output);
-
-  const outputFile = `${file}.out`;
-
-  await writeFile(outputFile, output, "utf-8");
-}
 
 export function parsedToString(arr: EnvArrayFormat) {
   return arr
