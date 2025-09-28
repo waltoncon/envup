@@ -2,7 +2,7 @@ import { globby } from "globby";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const files = await globby("**", {
+const files = await globby(["**", "!*.out"], {
   cwd: resolve("./test-env-files"),
   absolute: true,
   dot: true,
