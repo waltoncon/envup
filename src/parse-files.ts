@@ -105,7 +105,7 @@ export function parse(src: string) {
     // Remove surrounding quotes
     value = value.replace(/^(['"`])([\s\S]*)\1$/gm, "$2");
 
-    const hasQuote = maybeQuote === '"';
+    const hasQuote = maybeQuote && ['"', "'"].includes(maybeQuote);
 
     // Expand newlines if double quoted
     if (hasQuote) {
@@ -120,6 +120,7 @@ export function parse(src: string) {
       key,
       value,
       export: match.groups?.export !== undefined,
+      quote: hasQuote ? maybeQuote : undefined,
       pos: getLineAndColumnFromIndex(lines, match.index),
     });
   }
