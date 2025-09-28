@@ -10,6 +10,7 @@ type EnvArrayFormat = Array<
       value: string;
       inline_comment?: string;
       quote?: string;
+      export?: boolean;
       pos: { line: number; column: number };
     }
 >;
@@ -23,7 +24,7 @@ const files = await globby(["**", "!*.out"], {
 console.log("Found files:", files);
 
 const LINE =
-  /(?:^|^)(?:^\s*#(?:[^\r\n]*?)(?<full_comment>.*)|\s*(?:export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
+  /(?:^|^)(?:^\s*#(?:[^\r\n]*?)(?<full_comment>.*)|\s*(?<export>export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
 
 for (const file of files) {
   const content = await readFile(file, "utf-8");
@@ -49,8 +50,9 @@ export function parsedToString(arr: EnvArrayFormat) {
       }
 
       const q = entry.quote || "";
+      const ex = entry.export ? "export " : "";
 
-      let line = `${entry.key}=${q}${entry.value}${q}`;
+      let line = `${ex}${entry.key}=${q}${entry.value}${q}`;
 
       if (entry.inline_comment) {
         line += ` # ${entry.inline_comment}`;
@@ -117,7 +119,7 @@ export function parse(src: string) {
       type: "var",
       key,
       value,
-      quote: hasQuote ? '"' : undefined,
+      export: match.groups?.export !== undefined,
       pos: getLineAndColumnFromIndex(lines, match.index),
     });
   }
