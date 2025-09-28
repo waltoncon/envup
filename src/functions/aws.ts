@@ -10,7 +10,7 @@ export default defineFunction(async function aws({
   profile,
   versionStage = "AWSCURRENT",
 }: {
-  value: string;
+  value?: string;
   region?: string;
   profile?: string;
   versionStage?: string;

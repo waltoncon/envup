@@ -7,10 +7,14 @@ export default defineFunction(function hash({
   algo = "sha256",
   encoding = "hex",
 }: {
-  value: string;
+  value?: string;
   algo?: string;
   encoding?: BinaryToTextEncoding;
 }) {
+  if (value === undefined) {
+    throw new Error("Missing value for hash function");
+  }
+
   if (!getHashes().includes(algo)) {
     throw new Error(`Unsupported hash algorithm: ${algo}`);
   }
