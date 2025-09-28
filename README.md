@@ -25,3 +25,7 @@ This project was created using `bun init` in bun v1.2.18. [Bun](https://bun.sh) 
 - [ ] Command to create env files from example
   - [ ] Option to remove comments
   - [ ] Compute envup values (aws secrets, random values, hashes, etc)
+- [ ] Command to update existing env file from example
+  - [ ] Merge in new keys
+  - [ ] Create a backup of the original file
+  - [ ] Warn if the new backup isn't ignored by git
