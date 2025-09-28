@@ -4,3 +4,13 @@ export function needsQuotes(value: string): boolean {
   const specialCharsRegex = /[\s"'\\$`!#&*(){}[\];<>?~|]/;
   return specialCharsRegex.test(value);
 }
+
+type FuncData = {
+  value: string | undefined;
+  [key: string]: string | undefined;
+};
+type FuncReturn = Promise<string | undefined> | string | undefined;
+export type Func = (data: FuncData) => FuncReturn;
+export function defineFunction(callback: Func) {
+  return callback;
+}

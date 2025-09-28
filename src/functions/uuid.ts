@@ -1,3 +1,4 @@
+import { defineFunction } from "@/utils";
 import { v1, v4, v6, v7 } from "uuid";
 
 const versions = {
@@ -7,12 +8,10 @@ const versions = {
   "7": () => v7(),
 };
 
-export default function uuid(url: URL) {
-  const version = (url.pathname.slice(0) || "4") as keyof typeof versions;
-
+export default defineFunction(function uuid({ value: version = "4" }) {
   if (!(version in versions)) {
     throw new Error(`Unsupported UUID version: ${version}`);
   }
 
-  return versions[version]();
-}
+  return versions[version as keyof typeof versions]();
+});

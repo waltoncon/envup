@@ -1,9 +1,10 @@
 import type { EnvAst, AssignmentNode } from "./types";
 import aws from "./functions/aws";
-import { needsQuotes } from "./utils";
-import { hash } from "./functions/hash";
+import { needsQuotes, type Func } from "./utils";
+import hash from "./functions/hash";
 import random from "./functions/random";
 import uuid from "./functions/uuid";
+import timestamp from "./functions/timestamp";
 
 export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
   return await Promise.all(
@@ -20,6 +21,10 @@ export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
 
       const url = new URL(node.value);
       const funcName = url.hostname;
+      const args = {
+        ...Object.fromEntries(url.searchParams),
+        value: url.pathname.slice(1) || undefined,
+      };
 
       if (!funcName) {
         console.error(`Invalid envup URL (missing function): ${node.raw}`);
@@ -32,7 +37,7 @@ export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
       }
 
       const func = functions[funcName as FuncName];
-      const newValue = (await func(url)) || "";
+      const newValue = (await func(args)) || "";
 
       return {
         ...node,
@@ -43,13 +48,12 @@ export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
   );
 }
 
-type Func = (url: URL) => Promise<string | undefined> | string | undefined;
 type FuncName = keyof typeof functions;
 
 const functions = {
   random,
   uuid,
-  timestamp: () => Date.now().toString(),
+  timestamp,
   hash,
   aws,
 } as const satisfies Record<string, Func>;
