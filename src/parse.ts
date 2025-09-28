@@ -1,5 +1,6 @@
 type EnvArrayFormat = Array<
   | { type: "comment"; text: string; pos: { line: number; column: number } }
+  | { type: "blank"; pos: { line: number; column: number } }
   | {
       type: "var";
       key: string;
@@ -12,13 +13,17 @@ type EnvArrayFormat = Array<
 >;
 
 const LINE =
-  /(?:^|^)(?:^\s*#(?:[^\r\n]*?)(?<full_comment>.*)|\s*(?<export>export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)/gm;
+  /(?:^|^)(?:^\s*#(?:[^\r\n]*?)(?<full_comment>.*)|\s*(?<export>export\s+)?(?<key>[\w.-]+)(?:\s*=\s*?|:\s+?)(?<val>\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*?(?:#\s*(?<inline_comment>.*))?)(?:$|$)|(?<blank>^\s*$)/gm;
 
 export function parsedToString(arr: EnvArrayFormat) {
   return arr
     .map((entry) => {
       if (entry.type === "comment") {
         return `# ${entry.text}`;
+      }
+
+      if (entry.type === "blank") {
+        return "";
       }
 
       const q = entry.quote || "";
@@ -53,6 +58,14 @@ export function parse(src: string) {
       result.push({
         type: "comment",
         text: match.groups.full_comment.trim(),
+        pos: getLineAndColumnFromIndex(lines, match.index),
+      });
+      continue;
+    }
+
+    if (match.groups?.blank !== undefined) {
+      result.push({
+        type: "blank",
         pos: getLineAndColumnFromIndex(lines, match.index),
       });
       continue;
