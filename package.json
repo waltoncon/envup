@@ -2,7 +2,6 @@
   "name": "@waltoncon/envup",
   "version": "0.0.1",
   "description": "A tool to help initialise and update environment variables for your projects.",
-  "module": "src/index.ts",
   "type": "module",
   "bin": {
     "envup": "bin/envup.js"
@@ -12,10 +11,6 @@
     "dev": "bun build:base --sourcemap=inline",
     "build:base": "bun build src/cli/index.ts --outfile=dist/bin.js --target=node",
     "test": "vitest"
-  },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
   },
   "devDependencies": {
     "@types/bun": "latest",
