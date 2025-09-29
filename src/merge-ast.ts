@@ -1,6 +1,6 @@
 import type { EnvAst, AssignmentNode } from "./types";
 
-type MergeChange =
+export type MergeChange =
   | { type: "added_key"; key: string }
   | { type: "added_node"; nodeType: string; line: number }
   | { type: "added_inline_comment"; key: string }
@@ -63,14 +63,6 @@ export function mergeEnvAst(env: EnvAst[], example: EnvAst[]): MergeResult {
     } else {
       // Comments, blanks, unknown — follow example layout
       merged.push({ ...exNode });
-
-      if (exNode.type === "Comment" || exNode.type === "Unknown") {
-        changes.push({
-          type: "added_node",
-          nodeType: exNode.type,
-          line: exNode.line,
-        });
-      }
     }
   }
 
