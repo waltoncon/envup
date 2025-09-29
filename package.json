@@ -14,6 +14,10 @@
     "build:base": "bun build src/cli/index.ts --outfile=dist/bin.js --target=node",
     "test": "vitest"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^24.3.0",
@@ -29,5 +33,9 @@
     "execa": "^9.6.0",
     "globby": "^14.1.0",
     "uuid": "^13.0.0"
-  }
+  },
+  "files": [
+    "bin",
+    "dist"
+  ]
 }
