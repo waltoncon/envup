@@ -4,7 +4,6 @@
   "description": "A tool to help initialise and update environment variables for your projects.",
   "module": "src/index.ts",
   "type": "module",
-  "private": true,
   "bin": {
     "envup": "bin/envup.js"
   },
