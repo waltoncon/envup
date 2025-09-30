@@ -18,21 +18,17 @@
     "url": "https://github.com/waltoncon/envup.git"
   },
   "devDependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.896.0",
     "@types/bun": "latest",
     "@types/node": "^24.3.0",
-    "peggy": "^5.0.6",
-    "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.896.0",
     "commander": "^14.0.1",
     "execa": "^9.6.0",
     "globby": "^14.1.0",
-    "uuid": "^13.0.0"
+    "peggy": "^5.0.6",
+    "typescript": "^5",
+    "uuid": "^13.0.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.2.4"
   },
   "files": [
     "bin",
