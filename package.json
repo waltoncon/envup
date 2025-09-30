@@ -13,6 +13,10 @@
     "test": "vitest",
     "grammar": "peggy -o src/parsers/terraform-tfvars.js grammar/terraform-tfvars.pegjs --format=es --dts --return-types '{\"TfVars\":\"string\"}'"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/waltoncon/envup.git"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^24.3.0",
