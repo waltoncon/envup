@@ -28,7 +28,8 @@
     "typescript": "^5",
     "uuid": "^13.0.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "zod": "^4.1.11"
   },
   "files": [
     "bin",

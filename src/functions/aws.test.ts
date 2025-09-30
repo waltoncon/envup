@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import aws from "./aws";
+import { ZodError } from "zod";
 
 const sendMock = vi.fn();
 const ctorParams: any[] = [];
@@ -28,10 +29,7 @@ afterEach(() => {
 
 describe("aws()", () => {
   it("throws when missing secret name", async () => {
-    await expect(
-      // @ts-expect-error intentional missing value
-      aws({ region: "us-east-1", profile: "default" })
-    ).rejects.toThrow("Missing secret name in AWS Secrets Manager URL");
+    await expect(() => aws({ region: "us-east-1" })).toThrow(ZodError);
   });
 
   it("returns secret string on success", async () => {

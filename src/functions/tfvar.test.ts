@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import tfvar from "./tfvar";
 import { resolve } from "node:path";
+import { ZodError } from "zod";
 
 const fsProm = () => ({
   readFile: async (path: string) => {
@@ -36,22 +37,17 @@ describe("tfvar()", () => {
   });
 
   it("throws on missing path", async () => {
-    // @ts-expect-error intentional
-    await expect(tfvar({ key: "x" }, { sourcePath })).rejects.toThrow(
-      /Missing path/
-    );
+    await expect(() => tfvar({ key: "x" }, { sourcePath })).toThrow(ZodError);
   });
 
   it("throws on missing key", async () => {
-    await expect(
-      // @ts-expect-error intentional
+    await expect(() =>
       tfvar({ path: "fixtures/sample.tfvars" }, { sourcePath })
-    ).rejects.toThrow(/Missing key/);
+    ).toThrow(ZodError);
   });
 
   it("throws on missing sourcePath context", async () => {
     await expect(
-      // @ts-expect-error intentional
       tfvar({ path: "fixtures/sample.tfvars", key: "nested.key" })
     ).rejects.toThrow(/sourcePath/);
   });

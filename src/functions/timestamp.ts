@@ -1,5 +1,8 @@
-import { defineFunction } from "@/utils";
+import { createFunction } from "@/utils";
 
-export default defineFunction(function timestamp() {
-  return Date.now().toString();
+export default createFunction({
+  schema: (z) => ({}),
+  handler: () => {
+    return Date.now().toString();
+  },
 });

@@ -1,3 +1,4 @@
+import { ZodError } from "zod";
 import hash from "./hash";
 import { describe, test, expect } from "vitest";
 
@@ -25,19 +26,14 @@ describe("hash()", () => {
   });
 
   test("throws when value missing", () => {
-    // @ts-expect-error intentional missing value
-    expect(() => hash({})).toThrow("Missing value for hash function");
+    expect(() => hash({})).toThrow(ZodError);
   });
 
   test("throws on unsupported algorithm", () => {
-    expect(() => hash({ value: "hello", algo: "notreal" })).toThrow(
-      "Unsupported hash algorithm: notreal"
-    );
+    expect(() => hash({ value: "hello", algo: "notreal" })).toThrow(ZodError);
   });
 
   test("throws on unsupported encoding", () => {
-    expect(() => hash({ value: "hello", encoding: "utf8" })).toThrow(
-      "Unsupported encoding: utf8"
-    );
+    expect(() => hash({ value: "hello", encoding: "utf8" })).toThrow(ZodError);
   });
 });

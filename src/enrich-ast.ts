@@ -1,6 +1,6 @@
 import type { EnvAst, AssignmentNode } from "./types";
 import aws from "./functions/aws";
-import { needsQuotes, type Func, type FuncCtx } from "./utils";
+import { needsQuotes, type Context } from "./utils";
 import hash from "./functions/hash";
 import random from "./functions/random";
 import uuid from "./functions/uuid";
@@ -9,7 +9,7 @@ import tfvar from "./functions/tfvar";
 
 export async function enrichAst(
   ast: EnvAst[],
-  ctx?: FuncCtx
+  ctx?: Context
 ): Promise<EnvAst[]> {
   return await Promise.all(
     ast.map(async (node) => {
@@ -55,4 +55,4 @@ const functions = {
   hash,
   aws,
   tfvar,
-} as const satisfies Record<string, Func>;
+} as const;

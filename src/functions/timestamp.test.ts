@@ -4,7 +4,6 @@ import timestamp from "./timestamp";
 describe("timestamp()", () => {
   it("returns numeric string of current time", () => {
     const before = Date.now();
-    // @ts-ignore
     const value = timestamp({});
     const after = Date.now();
     // @ts-ignore
@@ -15,9 +14,7 @@ describe("timestamp()", () => {
   });
 
   it("produces increasing values over time", () => {
-    // @ts-ignore
     const a = Number(timestamp({}));
-    // @ts-ignore
     const b = Number(timestamp({}));
     expect(b).toBeGreaterThanOrEqual(a);
   });
