@@ -10,11 +10,13 @@
     "build": "bun build:base --sourcemap=none --minify",
     "dev": "bun build:base --sourcemap=inline --watch",
     "build:base": "bun build src/cli/index.ts --outfile=dist/bin.js --target=node",
-    "test": "vitest"
+    "test": "vitest",
+    "grammar": "peggy -o src/parsers/terraform-tfvars.js grammar/terraform-tfvars.pegjs --format=es --dts --return-types '{\"TfVars\":\"string\"}'"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "^24.3.0",
+    "peggy": "^5.0.6",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
   },

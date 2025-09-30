@@ -5,6 +5,7 @@ import hash from "./functions/hash";
 import random from "./functions/random";
 import uuid from "./functions/uuid";
 import timestamp from "./functions/timestamp";
+import tfvar from "./functions/tfvar";
 
 export async function enrichAst(
   ast: EnvAst[],
@@ -53,4 +54,5 @@ const functions = {
   timestamp,
   hash,
   aws,
+  tfvar,
 } as const satisfies Record<string, Func>;

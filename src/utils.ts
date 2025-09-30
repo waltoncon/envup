@@ -36,3 +36,7 @@ export function prettifyChanges(changes: MergeChange[]): string {
     })
     .join("\n");
 }
+
+export function getValueByDot(obj: Record<string, any>, path: string): any {
+  return path.split(".").reduce((acc, key) => acc && acc[key], obj);
+}
