@@ -12,7 +12,8 @@ type FuncData = {
   [key: string]: string | undefined;
 };
 type FuncReturn = Promise<string | undefined> | string | undefined;
-export type Func = (data: FuncData) => FuncReturn;
+export type FuncCtx = { sourcePath?: string };
+export type Func = (data: FuncData, ctx?: FuncCtx) => FuncReturn;
 export function defineFunction(callback: Func) {
   return callback;
 }

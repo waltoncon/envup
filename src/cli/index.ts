@@ -1,5 +1,5 @@
 import { Command, Option } from "commander";
-import { readFile, stat, writeFile } from "node:fs/promises";
+import { readFile, stat, writeFile as baseWriteFile } from "node:fs/promises";
 import { relative, resolve } from "node:path";
 import pkg from "../../package.json";
 import { parseEnvToAST } from "@/ast";
@@ -8,6 +8,7 @@ import { stringifyEnvAst } from "@/stringify-ast";
 import { enrichAst } from "@/enrich-ast";
 import { prettifyChanges } from "@/utils";
 import { globby } from "globby";
+import type { EnvAst } from "@/types";
 
 const program = new Command();
 
@@ -21,12 +22,14 @@ program
       "Run in the given current working directory"
     ).default(process.cwd(), "current working directory")
   )
-  .action(async ({ cwd }) => {
-    const globbed = await globby(".env*", {
-      cwd,
-      dot: true,
-      gitignore: false,
-    });
+  .addOption(
+    new Option("--dry-run", "Show what would be done, but make no changes")
+  )
+  .argument("[files...]", "Files to process (default: all .env* files)", [])
+  .action(async (filesArg: string[], { cwd, dryRun }) => {
+    const globbed = filesArg?.length
+      ? filesArg
+      : await globby(".env*", { cwd, dot: true, gitignore: false });
 
     const files = globbed
       .map((file) => resolve(cwd, file.replace(/\.example$/, "")))
@@ -50,31 +53,39 @@ program
         continue;
       }
 
+      const sourceContent = await readFile(source, "utf-8");
+      const sourceAst = parseEnvToAST(sourceContent);
+
+      if (dryRun) {
+        console.log("Source content:\n", sourceContent);
+      }
+
+      let outputAst: EnvAst[];
+
       if (await fileExists(dest)) {
         console.log(`Updating ${relDest} from ${relSource}`);
 
         const destContent = await readFile(dest, "utf-8");
 
-        await writeFile(`${dest}.bak`, destContent);
+        await writeFile(dryRun, `${dest}.bak`, destContent);
 
         const { merged, changes } = mergeEnvAst(
           parseEnvToAST(destContent),
-          parseEnvToAST(await readFile(source, "utf-8"))
+          sourceAst
         );
 
-        console.log(changes.length ? prettifyChanges(changes) : "No changes");
+        if (changes.length) {
+          console.log(prettifyChanges(changes));
+        }
 
-        const enriched = await enrichAst(merged);
-        const stringified = stringifyEnvAst(enriched);
-        await writeFile(dest, stringified);
+        outputAst = await enrichAst(merged, { sourcePath: source });
       } else {
         console.log(`Creating ${relDest} from ${relSource}...`);
-        const exampleContent = await readFile(source, "utf-8");
-        const example = parseEnvToAST(exampleContent);
-        const enriched = await enrichAst(example);
-        const stringified = stringifyEnvAst(enriched);
-        await writeFile(dest, stringified);
+        outputAst = await enrichAst(sourceAst, { sourcePath: source });
       }
+
+      const stringified = stringifyEnvAst(outputAst);
+      await writeFile(dryRun, dest, stringified);
     }
   });
 
@@ -84,4 +95,15 @@ async function fileExists(path: string): Promise<boolean> {
   return stat(path)
     .then(() => true)
     .catch(() => false);
+}
+
+async function writeFile(
+  dryRun: boolean,
+  ...[dest, content]: Parameters<typeof baseWriteFile>
+) {
+  if (dryRun) {
+    console.log(`Writing to ${dest}:\n${content}`);
+  } else {
+    await baseWriteFile(dest, content);
+  }
 }

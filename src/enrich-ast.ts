@@ -1,21 +1,18 @@
 import type { EnvAst, AssignmentNode } from "./types";
 import aws from "./functions/aws";
-import { needsQuotes, type Func } from "./utils";
+import { needsQuotes, type Func, type FuncCtx } from "./utils";
 import hash from "./functions/hash";
 import random from "./functions/random";
 import uuid from "./functions/uuid";
 import timestamp from "./functions/timestamp";
 
-export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
+export async function enrichAst(
+  ast: EnvAst[],
+  ctx?: FuncCtx
+): Promise<EnvAst[]> {
   return await Promise.all(
     ast.map(async (node) => {
       if (node.type !== "Assignment") return node;
-
-      const existingNode = existingAst
-        .filter((n) => n.type === "Assignment")
-        .find((n) => n.key === node.key);
-
-      if (existingNode) return { ...node, value: existingNode.value };
 
       if (!node.value.startsWith("envup://")) return node;
 
@@ -37,7 +34,7 @@ export async function enrichAst(ast: EnvAst[], existingAst: EnvAst[] = []) {
       }
 
       const func = functions[funcName as FuncName];
-      const newValue = (await func(args)) || "";
+      const newValue = (await func(args, ctx)) || "";
 
       return {
         ...node,

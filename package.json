@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "bun build:base --sourcemap=none --minify",
-    "dev": "bun build:base --sourcemap=inline",
+    "dev": "bun build:base --sourcemap=inline --watch",
     "build:base": "bun build src/cli/index.ts --outfile=dist/bin.js --target=node",
     "test": "vitest"
   },
