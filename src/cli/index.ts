@@ -82,10 +82,10 @@ program
           console.log(prettifyChanges(changes));
         }
 
-        outputAst = await enrichAst(merged, { sourcePath: source });
+        outputAst = await enrichAstCli(merged, { sourcePath: source });
       } else {
         console.log(`Creating ${relDest} from ${relSource}...`);
-        outputAst = await enrichAst(sourceAst, { sourcePath: source });
+        outputAst = await enrichAstCli(sourceAst, { sourcePath: source });
       }
 
       const stringified = stringifyEnvAst(outputAst);
@@ -109,5 +109,16 @@ async function writeFile(
     console.log(`Writing to ${dest}:\n${content}`);
   } else {
     await baseWriteFile(dest, content);
+  }
+}
+
+async function enrichAstCli(...[ast, context]: Parameters<typeof enrichAst>) {
+  try {
+    return await enrichAst(ast, context);
+  } catch (e) {
+    if (e instanceof Error) {
+      console.error("Uncaught error:", e.message);
+    }
+    process.exit(1);
   }
 }
