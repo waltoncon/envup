@@ -67,7 +67,11 @@ program
 
         const destContent = await readFile(dest, "utf-8");
 
-        await writeFile(dryRun, `${dest}.bak`, destContent);
+        await writeFile(
+          dryRun,
+          `${dest}.${new Date().getTime()}.bak`,
+          destContent
+        );
 
         const { merged, changes } = mergeEnvAst(
           parseEnvToAST(destContent),
