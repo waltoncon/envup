@@ -1,4 +1,5 @@
-test-env-files/*.out
+examples/*
+!examples/*.example
 
 # dependencies (bun install)
 node_modules
