@@ -50,4 +50,5 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo "${NODE_AUTH_TOKEN:0:7}"
+          npm config list
           npm publish --provenance --access public
