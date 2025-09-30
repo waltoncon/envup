@@ -19,10 +19,12 @@ export async function enrichAst(
 
       const url = new URL(node.value);
       const funcName = url.hostname;
-      const args = {
-        ...Object.fromEntries(url.searchParams),
-        value: url.pathname.slice(1) || undefined,
-      };
+      const value = url.pathname.slice(1);
+      const args = Object.fromEntries(url.searchParams);
+
+      if (value) {
+        args.value = value;
+      }
 
       if (!funcName) {
         console.error(`Invalid envup URL (missing function): ${node.raw}`);
