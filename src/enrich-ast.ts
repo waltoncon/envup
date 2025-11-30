@@ -6,6 +6,7 @@ import random from "./functions/random";
 import uuid from "./functions/uuid";
 import timestamp from "./functions/timestamp";
 import tfvar from "./functions/tfvar";
+import op from "./functions/op";
 
 export async function enrichAst(
   ast: EnvAst[],
@@ -57,4 +58,5 @@ const functions = {
   hash,
   aws,
   tfvar,
+  op,
 } as const;
