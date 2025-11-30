@@ -1,17 +1,17 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
 import aws from "./aws";
 import { ZodError } from "zod";
 
-const sendMock = vi.fn();
+const sendMock = mock();
 const ctorParams: any[] = [];
 const commandParams: any[] = [];
 
-vi.mock("@aws-sdk/client-secrets-manager", () => ({
-  SecretsManagerClient: vi.fn().mockImplementation((params) => {
+mock.module("@aws-sdk/client-secrets-manager", () => ({
+  SecretsManagerClient: mock((params) => {
     ctorParams.push(params);
     return { send: sendMock };
   }),
-  GetSecretValueCommand: vi.fn().mockImplementation((params) => {
+  GetSecretValueCommand: mock((params) => {
     commandParams.push(params);
     return params;
   }),
@@ -24,7 +24,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  vi.clearAllMocks();
+  mock.clearAllMocks();
 });
 
 describe("aws()", () => {

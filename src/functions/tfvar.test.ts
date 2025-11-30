@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, expect, it, mock } from "bun:test";
 import tfvar from "./tfvar";
 import { resolve } from "node:path";
 import { ZodError } from "zod";
@@ -12,8 +12,8 @@ const fsProm = () => ({
   },
 });
 
-vi.mock("fs/promises", fsProm);
-vi.mock("node:fs/promises", fsProm);
+mock.module("node:fs", fsProm);
+mock.module("node:fs/promises", fsProm);
 
 const sourcePath = resolve(__dirname, "dummy.ts"); // only directory is used
 

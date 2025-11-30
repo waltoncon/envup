@@ -1,6 +1,6 @@
 import { ZodError } from "zod";
 import hash from "./hash";
-import { describe, test, expect } from "vitest";
+import { describe, test, expect } from "bun:test";
 
 describe("hash()", () => {
   test("hashes using default sha256 + hex", () => {

@@ -1,5 +1,5 @@
 import { parse } from "path";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from "bun:test";
 import { parseEnvToAST } from "./ast";
 import { mergeEnvAst } from "./merge-ast";
 import { stringifyEnvAst } from "./stringify-ast";
