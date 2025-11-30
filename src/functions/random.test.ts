@@ -1,5 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import random from "./random";
+import { length } from "zod";
 
 describe("random()", () => {
   it("returns a non-empty string", () => {
@@ -8,18 +9,10 @@ describe("random()", () => {
     expect(v.length).toBeGreaterThan(0);
   });
 
-  it("returns only lowercase base36 characters (a-z0-9)", () => {
-    const v = random({});
-    expect(/^[a-z0-9]+$/.test(v)).toBe(true);
-    expect(v).toBe(v.toLowerCase());
-  });
-
-  it("length is within expected bounds (<= 13)", () => {
-    // Implementation uses substring(2, 15) yielding at most length 13.
+  it("default length is 15", () => {
     const lengths = Array.from({ length: 50 }, () => random({}).length);
     lengths.forEach((len) => {
-      expect(len).toBeGreaterThan(0);
-      expect(len).toBeLessThanOrEqual(13);
+      expect(len).toBe(15);
     });
   });
 
@@ -29,13 +22,28 @@ describe("random()", () => {
     for (let i = 0; i < count; i++) {
       set.add(random({}));
     }
-    // Allowing a tiny collision probability; should realistically be zero here.
-    expect(set.size).toBeGreaterThan(count * 0.995);
+    expect(set.size).toBe(count);
   });
 
   it("does not repeat consecutively (extremely unlikely)", () => {
     const a = random({});
     const b = random({});
     expect(a).not.toBe(b);
+  });
+
+  it("generates a random string of the specified length", () => {
+    const length = 10;
+    const result = random({ length: 10 });
+    expect(result).toHaveLength(length);
+    expect(/^[A-Za-z0-9]+$/.test(result)).toBe(true);
+  });
+
+  it("handles edge case of length 0", () => {
+    const result = random({ length: 0 });
+    expect(result).toBe("");
+  });
+
+  it("throw on non-numeric values", () => {
+    expect(() => random({ length: "a1bc" })).toThrow();
   });
 });
